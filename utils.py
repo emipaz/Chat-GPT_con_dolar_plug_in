@@ -6,6 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ['OPENAI_API_KEY']
 
+cliente = openai.OpenAI()
 
 def consulta_con_funcion(messages):
     """
@@ -19,7 +20,7 @@ def consulta_con_funcion(messages):
     - El resultado de la consulta utilizando la función de OpenAI ChatCompletion.
 
     """
-    return openai.ChatCompletion.create(
+    return cliente.chat.completions.create(
         model="gpt-3.5-turbo-0613",
         messages=messages,
         max_tokens=250,
@@ -37,13 +38,12 @@ def consulta(messages):
     Retorna:
     - El resultado de la consulta utilizando la función de OpenAI ChatCompletion.
     """
-    return openai.ChatCompletion.create(
+    return cliente.chat.completions.create(
         model="gpt-3.5-turbo-0613",
         messages=messages,
         max_tokens=250,
     )
      
-
 def rol_content_func(response):
     """
     Extrae información relevante de la respuesta proporcionada por Chat-GPT
@@ -55,7 +55,7 @@ def rol_content_func(response):
     - Una tupla con el rol, el contenido y los datos de la función (si están presentes) de la respuesta.
 
     """
-    response_dict = response.choices[0].to_dict()
+    response_dict = response.choices[0].model_dump()
     rol = response_dict["message"]["role"]
     content = response_dict["message"]["content"]
     hay_funcion = response_dict["message"].get("function_call", False)
@@ -71,7 +71,7 @@ def rol_content_func(response):
 # consulta la api dolarapi.com
 
 def consulta_dolar():
-    """Consulta las cotizaciones del dolar en argentina"""
+    """Consulta las cotizaciones del dolar en argentina proveidas por dolarapi.com"""
     dolar = get("https://dolarapi.com/v1/dolares")
     if dolar.status_code == 200:
         dolar = dolar.json()
@@ -84,7 +84,7 @@ def consulta_dolar():
 funciones = [
             {
                 "name": "consulta_dolar",
-                "description": "Consulta las cotizaciones del dolar en argentina",
+                "description": "Consulta las cotizaciones del dolar en argentina proveidas por dolarapi.com",
                 "parameters": {
                                 "type": "object",
                                 "properties": {}
